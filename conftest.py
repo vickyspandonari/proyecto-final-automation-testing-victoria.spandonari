@@ -10,7 +10,7 @@ from webdriver_manager.chrome import ChromeDriverManager
 def driver():
     options = webdriver.ChromeOptions()
 
-    # Modo headless - necesario para GitHub Actions
+    # Modo headless - necesario para CI/CD
     options.add_argument("--headless=new")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
@@ -28,7 +28,8 @@ def driver():
     driver.quit()
 
 
-# CAPTURAR SCREENSHOTS AL FALLAR UN TEST
+# CAPTURA DE SCREENSHOTS
+
 @pytest.hookimpl(hookwrapper=True)
 def pytest_runtest_makereport(item, call):
     outcome = yield
@@ -48,26 +49,22 @@ def pytest_runtest_makereport(item, call):
             driver.save_screenshot(file_path)
             print(f"\n Screenshot guardado: {file_path}\n")
 
-            # Agregar al reporte HTML (si pytest-html está habilitado)
-            if hasattr(report, "extra"):
-                try:
-                    screenshot_rel = os.path.relpath(file_path, os.getcwd())
-                    html = (
-                        f'<div><img src="{screenshot_rel}" '
-                        f'style="width:600px;border:1px solid #ccc;" '
-                        f'alt="screenshot"></div>'
-                    )
-                    report.extra.append(pytest_html.extras.html(html))
-                except Exception as e:
-                    print(f"No se pudo adjuntar screenshot al HTML: {e}")
+            # Adjuntar al HTML si pytest-html está presente
+            if pytest_html and hasattr(report, "extra"):
+                screenshot_rel = os.path.relpath(file_path, os.getcwd())
+                html = (
+                    f'<div><img src="{screenshot_rel}" '
+                    f'style="width:600px;border:1px solid #ccc;" '
+                    f'alt="screenshot"></div>'
+                )
+                report.extra.append(pytest_html.extras.html(html))
 
 
-# CONFIGURACION DE pytest-html
+
+# MANEJO DE pytest-html 
+
 def pytest_configure(config):
     global pytest_html
     pytest_html = config.pluginmanager.getplugin("html")
 
-    # Fuerza la creación de report.html al correr pytest
-    if config.option.html is None:
-        config.option.html = "reports/report.html"
 
