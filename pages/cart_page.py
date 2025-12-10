@@ -9,7 +9,15 @@ class CartPage(BasePage):
     def get_cart_items_count(self):
         return len(self.driver.find_elements(*self.CART_ITEM))
 
+    def is_checkout_button_present(self):
+        try:
+            self.find(*self.CHECKOUT_BTN)
+            return True
+        except:
+            return False
+
     def go_to_checkout(self):
-    # Scroll para que el botón quede visible en headless (porque me daba error en github actions)
-        self.driver.execute_script("arguments[0].scrollIntoView();", self.find(*self.CHECKOUT_BTN))
-        self.click(*self.CHECKOUT_BTN)
+        # Scroll para que el botón sea visible en headless mode
+        element = self.find(*self.CHECKOUT_BTN)
+        self.driver.execute_script("arguments[0].scrollIntoView();", element)
+        element.click()

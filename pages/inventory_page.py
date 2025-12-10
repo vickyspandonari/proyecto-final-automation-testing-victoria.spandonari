@@ -8,11 +8,13 @@ class InventoryPage(BasePage):
     ITEM_NAME = (By.CSS_SELECTOR, ".inventory_item_name")
 
     def add_first_product_to_cart(self):
-        self.click(*self.FIRST_PRODUCT_ADD_BTN)
+        # Scroll para evitar errores en headless
+        element = self.find(*self.FIRST_PRODUCT_ADD_BTN)
+        self.driver.execute_script("arguments[0].scrollIntoView();", element)
+        element.click()
 
     def go_to_cart(self):
         self.click(*self.CART_ICON)
-        
+
     def open_first_product(self):
         self.click(*self.ITEM_NAME)
-        
